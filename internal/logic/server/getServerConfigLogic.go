@@ -43,7 +43,6 @@ func (l *GetServerConfigLogic) GetServerConfig(req *dto.GetServerConfigRequest) 
 	if err == nil {
 		if cache != "" {
 			etag := tool.GenerateETag([]byte(cache))
-			//  Check If-None-Match header
 			match := l.request.IfNoneMatch
 			if match == etag {
 				return nil, xerr.StatusNotModified
@@ -58,26 +57,32 @@ func (l *GetServerConfigLogic) GetServerConfig(req *dto.GetServerConfigRequest) 
 			return resp, nil
 		}
 	}
-	data, err := l.svcCtx.Store.Node().FindOneServer(l.ctx, req.ServerId)
-	if err != nil {
-		l.Errorw("[GetServerConfig] FindOne error", logger.Field("error", err.Error()))
-		return nil, err
-	}
 
-	// compatible hysteria2, remove in future versions
 	protocolRequest := req.Protocol
 	if protocolRequest == Hysteria2 {
 		protocolRequest = Hysteria
 	}
 
-	protocols, err := data.UnmarshalProtocols()
+	_, nodes, err := l.svcCtx.Store.Node().FilterNodeList(l.ctx, &node.FilterNodeParams{
+		Page:     1,
+		Size:     1000,
+		ServerId: []int64{req.ServerId},
+		Search:   "",
+	})
 	if err != nil {
+		l.Errorw("[GetServerConfig] FilterNodeList error", logger.Field("error", err.Error()))
 		return nil, err
 	}
+
 	var cfg map[string]interface{}
-	for _, protocol := range protocols {
-		if protocol.Enable && protocol.Type == protocolRequest {
-			cfg = l.compatible(protocol)
+	for _, nodeItem := range nodes {
+		if nodeItem.Protocol == protocolRequest && *(nodeItem.Enabled) {
+			protocolConfig, err := nodeItem.UnmarshalProtocolConfig()
+			if err != nil {
+				l.Errorw("[GetServerConfig] UnmarshalProtocolConfig error", logger.Field("error", err.Error()))
+				continue
+			}
+			cfg = l.compatible(protocolConfig)
 			break
 		}
 	}
@@ -104,7 +109,6 @@ func (l *GetServerConfigLogic) GetServerConfig(req *dto.GetServerConfigRequest) 
 	if err = l.svcCtx.Redis.Set(l.ctx, cacheKey, c, node.ServerCacheTTL).Err(); err != nil {
 		l.Errorw("[GetServerConfig] redis set error", logger.Field("error", err.Error()))
 	}
-	//  Check If-None-Match header
 	match := l.request.IfNoneMatch
 	if match == etag {
 		return nil, xerr.StatusNotModified

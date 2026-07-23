@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"encoding/json"
 	"time"
 
 	"github.com/perfect-panel/server/internal/model/dto"
@@ -48,14 +49,33 @@ func (l *FilterServerListLogic) FilterServerList(req *dto.FilterServerListReques
 		var server dto.Server
 		tool.DeepCopy(&server, datum)
 
-		// handler protocols
+		// handler protocols - aggregate from nodes
 		var protocols []dto.Protocol
-		dst, err := datum.UnmarshalProtocols()
+		_, nodes, err := nodeStore.FilterNodeList(l.ctx, &node.FilterNodeParams{
+			Page:     1,
+			Size:     1000,
+			ServerId: []int64{datum.Id},
+			Search:   "",
+		})
 		if err != nil {
-			l.Errorf("[FilterServerList] UnmarshalProtocols Error: %s", err.Error())
+			l.Errorf("[FilterServerList] FilterNodeList Error: %s", err.Error())
 			continue
 		}
-		tool.DeepCopy(&protocols, dst)
+		for _, nodeItem := range nodes {
+			protocolConfig, err := nodeItem.UnmarshalProtocolConfig()
+			if err != nil {
+				l.Errorf("[FilterServerList] UnmarshalProtocolConfig Error: %s", err.Error())
+				continue
+			}
+			if protocolConfig.Type != "" {
+				var dtoProtocol dto.Protocol
+				configBytes, marshalErr := json.Marshal(protocolConfig)
+				if marshalErr == nil {
+					_ = json.Unmarshal(configBytes, &dtoProtocol)
+				}
+				protocols = append(protocols, dtoProtocol)
+			}
+		}
 		server.Protocols = protocols
 
 		nodeStatus, err := nodeStore.StatusCache(l.ctx, datum.Id)

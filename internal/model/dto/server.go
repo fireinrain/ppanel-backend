@@ -6,12 +6,11 @@ type AnyTLS struct {
 }
 
 type CreateServerRequest struct {
-	Name      string     `json:"name"`
-	Country   string     `json:"country,omitempty"`
-	City      string     `json:"city,omitempty"`
-	Address   string     `json:"address"`
-	Sort      int        `json:"sort,omitempty"`
-	Protocols []Protocol `json:"protocols"`
+	Name    string `json:"name"`
+	Country string `json:"country,omitempty"`
+	City    string `json:"city,omitempty"`
+	Address string `json:"address"`
+	Sort    int    `json:"sort,omitempty"`
 }
 
 type DeleteServerRequest struct {
@@ -405,13 +404,12 @@ type Tuic struct {
 }
 
 type UpdateServerRequest struct {
-	Id        int64      `json:"id"`
-	Name      string     `json:"name"`
-	Country   string     `json:"country,omitempty"`
-	City      string     `json:"city,omitempty"`
-	Address   string     `json:"address"`
-	Sort      int        `json:"sort,omitempty"`
-	Protocols []Protocol `json:"protocols"`
+	Id      int64  `json:"id"`
+	Name    string `json:"name"`
+	Country string `json:"country,omitempty"`
+	City    string `json:"city,omitempty"`
+	Address string `json:"address"`
+	Sort    int    `json:"sort,omitempty"`
 }
 
 type Vless struct {

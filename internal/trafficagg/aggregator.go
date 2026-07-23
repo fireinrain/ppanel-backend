@@ -80,7 +80,7 @@ func (a *Aggregator) AddReportAt(ctx context.Context, serverInfo *node.Server, p
 		return err
 	}
 
-	ratio, ok, err := protocolRatio(serverInfo, protocol)
+	ratio, ok, err := a.protocolRatio(ctx, serverInfo.Id, protocol)
 	if err != nil {
 		logger.WithContext(ctx).Error("[TrafficAggregator] Unmarshal protocols failed",
 			logger.Field("server_id", serverInfo.Id),
@@ -346,15 +346,24 @@ func (a *Aggregator) persistBucket(ctx context.Context, suffix string, deltas []
 	})
 }
 
-func protocolRatio(serverInfo *node.Server, protocol string) (float32, bool, error) {
-	protocols, err := serverInfo.UnmarshalProtocols()
+func (a *Aggregator) protocolRatio(ctx context.Context, serverId int64, protocol string) (float32, bool, error) {
+	_, nodes, err := a.svc.Store.Node().FilterNodeList(ctx, &node.FilterNodeParams{
+		Page:     1,
+		Size:     1000,
+		ServerId: []int64{serverId},
+		Search:   "",
+	})
 	if err != nil {
 		return 0, false, err
 	}
-	for _, item := range protocols {
-		if strings.EqualFold(item.Type, protocol) {
-			if item.Ratio > 0 {
-				return float32(item.Ratio), true, nil
+	for _, nodeItem := range nodes {
+		if strings.EqualFold(nodeItem.Protocol, protocol) {
+			protocolConfig, err := nodeItem.UnmarshalProtocolConfig()
+			if err != nil {
+				return 0, false, err
+			}
+			if protocolConfig.Ratio > 0 {
+				return float32(protocolConfig.Ratio), true, nil
 			}
 			return 1, true, nil
 		}

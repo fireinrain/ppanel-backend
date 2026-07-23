@@ -307,12 +307,12 @@ func (l *SubscribeLogic) createNoticeServers(message string) []*node.Node {
 			Port:    18080,
 			Address: "127.0.0.1",
 			Server: &node.Server{
-				Id:        1,
-				Name:      message,
-				Protocols: "[{\"type\":\"shadowsocks\",\"cipher\":\"aes-256-gcm\",\"port\":1}]",
+				Id:   1,
+				Name: message,
 			},
-			Protocol: "shadowsocks",
-			Enabled:  &enable,
+			Protocol:       "shadowsocks",
+			ProtocolConfig: "{\"type\":\"shadowsocks\",\"cipher\":\"aes-256-gcm\",\"port\":1}",
+			Enabled:        &enable,
 		},
 		{
 			Name:    host,
@@ -320,12 +320,12 @@ func (l *SubscribeLogic) createNoticeServers(message string) []*node.Node {
 			Port:    18080,
 			Address: "127.0.0.1",
 			Server: &node.Server{
-				Id:        1,
-				Name:      message,
-				Protocols: "[{\"type\":\"shadowsocks\",\"cipher\":\"aes-256-gcm\",\"port\":1}]",
+				Id:   1,
+				Name: message,
 			},
-			Protocol: "shadowsocks",
-			Enabled:  &enable,
+			Protocol:       "shadowsocks",
+			ProtocolConfig: "{\"type\":\"shadowsocks\",\"cipher\":\"aes-256-gcm\",\"port\":1}",
+			Enabled:        &enable,
 		},
 	}
 }

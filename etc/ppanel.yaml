@@ -1,0 +1,40 @@
+Host: 0.0.0.0
+Port: 8080
+Debug: false
+JwtAuth:
+  AccessSecret: lovelyfurina@
+  AccessExpire: 604800
+Verify:
+  LoginVerify: false
+Logger:
+  ServiceName: PPanel
+  Mode: console
+  Encoding: plain
+  TimeFormat: '2025-01-01 00:00:00.000'
+  Path: logs
+  Level: debug
+  MaxContentLength: 0
+  Compress: false
+  Stat: true
+  KeepDays: 0
+  StackCooldownMillis: 100
+  MaxBackups: 0
+  MaxSize: 0
+  Rotation: daily
+  FileTimeFormat: 2025-01-01T00:00:00.000Z00:00
+MySQL:
+  Addr: 45.8.113.83:8306
+  Dbname: xppanel
+  Username: root
+  Password: rootpassword@
+  Config: charset=utf8mb4&parseTime=true&loc=Asia%2FShanghai
+  MaxIdleConns: 10
+  MaxOpenConns: 10
+  SlowThreshold: 1000
+Redis:
+  Host: 45.8.113.83:8379
+  Pass:
+  DB: 1
+Administrator:
+  Password: princessfurina
+  Email: admin@furina.in

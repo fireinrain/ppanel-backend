@@ -23,13 +23,14 @@ type AppUserSubscbribeNode struct {
 }
 
 type CreateNodeRequest struct {
-	Name     string   `json:"name"`
-	Tags     []string `json:"tags,omitempty"`
-	Port     uint16   `json:"port"`
-	Address  string   `json:"address"`
-	ServerId int64    `json:"server_id"`
-	Protocol string   `json:"protocol"`
-	Enabled  *bool    `json:"enabled"`
+	Name           string   `json:"name"`
+	Tags           []string `json:"tags,omitempty"`
+	Port           uint16   `json:"port"`
+	Address        string   `json:"address"`
+	ServerId       int64    `json:"server_id"`
+	Protocol       string   `json:"protocol"`
+	ProtocolConfig Protocol `json:"protocol_config"`
+	Enabled        *bool    `json:"enabled"`
 }
 
 type DeleteNodeRequest struct {
@@ -56,17 +57,18 @@ type HasMigrateSeverNodeResponse struct {
 }
 
 type Node struct {
-	Id        int64    `json:"id"`
-	Name      string   `json:"name"`
-	Tags      []string `json:"tags"`
-	Port      uint16   `json:"port"`
-	Address   string   `json:"address"`
-	ServerId  int64    `json:"server_id"`
-	Protocol  string   `json:"protocol"`
-	Enabled   *bool    `json:"enabled"`
-	Sort      int      `json:"sort,omitempty"`
-	CreatedAt int64    `json:"created_at"`
-	UpdatedAt int64    `json:"updated_at"`
+	Id             int64    `json:"id"`
+	Name           string   `json:"name"`
+	Tags           []string `json:"tags"`
+	Port           uint16   `json:"port"`
+	Address        string   `json:"address"`
+	ServerId       int64    `json:"server_id"`
+	Protocol       string   `json:"protocol"`
+	ProtocolConfig Protocol `json:"protocol_config"`
+	Enabled        *bool    `json:"enabled"`
+	Sort           int      `json:"sort,omitempty"`
+	CreatedAt      int64    `json:"created_at"`
+	UpdatedAt      int64    `json:"updated_at"`
 }
 
 type NodeConfig struct {
@@ -173,14 +175,15 @@ type ToggleNodeStatusRequest struct {
 }
 
 type UpdateNodeRequest struct {
-	Id       int64    `json:"id"`
-	Name     string   `json:"name"`
-	Tags     []string `json:"tags,omitempty"`
-	Port     uint16   `json:"port"`
-	Address  string   `json:"address"`
-	ServerId int64    `json:"server_id"`
-	Protocol string   `json:"protocol"`
-	Enabled  *bool    `json:"enabled"`
+	Id             int64    `json:"id"`
+	Name           string   `json:"name"`
+	Tags           []string `json:"tags,omitempty"`
+	Port           uint16   `json:"port"`
+	Address        string   `json:"address"`
+	ServerId       int64    `json:"server_id"`
+	Protocol       string   `json:"protocol"`
+	ProtocolConfig Protocol `json:"protocol_config"`
+	Enabled        *bool    `json:"enabled"`
 }
 
 type UserSubscribeNodeInfo struct {

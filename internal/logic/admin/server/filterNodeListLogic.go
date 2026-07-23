@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"encoding/json"
 	"strings"
 
 	"github.com/perfect-panel/server/internal/model/dto"
@@ -42,18 +43,28 @@ func (l *FilterNodeListLogic) FilterNodeList(req *dto.FilterNodeListRequest) (re
 
 	list := make([]dto.Node, 0)
 	for _, datum := range data {
+		// Unmarshal protocol config using JSON for safety
+		var protocolConfig dto.Protocol
+		config, err := datum.UnmarshalProtocolConfig()
+		if err == nil {
+			configBytes, marshalErr := json.Marshal(config)
+			if marshalErr == nil {
+				_ = json.Unmarshal(configBytes, &protocolConfig)
+			}
+		}
 		list = append(list, dto.Node{
-			Id:        datum.Id,
-			Name:      datum.Name,
-			Tags:      tool.RemoveDuplicateElements(strings.Split(datum.Tags, ",")...),
-			Port:      datum.Port,
-			Address:   datum.Address,
-			ServerId:  datum.ServerId,
-			Protocol:  datum.Protocol,
-			Enabled:   datum.Enabled,
-			Sort:      datum.Sort,
-			CreatedAt: datum.CreatedAt.UnixMilli(),
-			UpdatedAt: datum.UpdatedAt.UnixMilli(),
+			Id:             datum.Id,
+			Name:           datum.Name,
+			Tags:           tool.RemoveDuplicateElements(strings.Split(datum.Tags, ",")...),
+			Port:           datum.Port,
+			Address:        datum.Address,
+			ServerId:       datum.ServerId,
+			Protocol:       datum.Protocol,
+			ProtocolConfig: protocolConfig,
+			Enabled:        datum.Enabled,
+			Sort:           datum.Sort,
+			CreatedAt:      datum.CreatedAt.UnixMilli(),
+			UpdatedAt:      datum.UpdatedAt.UnixMilli(),
 		})
 	}
 

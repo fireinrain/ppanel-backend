@@ -1,25 +1,52 @@
 package node
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/perfect-panel/server/pkg/logger"
+	"github.com/pkg/errors"
 	"gorm.io/gorm"
 )
 
 type Node struct {
-	Id        int64     `gorm:"primary_key"`
-	Name      string    `gorm:"type:varchar(100);not null;default:'';comment:Node Name"`
-	Tags      string    `gorm:"type:varchar(255);not null;default:'';comment:Tags"`
-	Port      uint16    `gorm:"not null;default:0;comment:Connect Port"`
-	Address   string    `gorm:"type:varchar(255);not null;default:'';comment:Connect Address"`
-	ServerId  int64     `gorm:"not null;default:0;comment:Server ID"`
-	Server    *Server   `gorm:"foreignKey:ServerId;references:Id"`
-	Protocol  string    `gorm:"type:varchar(100);not null;default:'';comment:Protocol"`
-	Enabled   *bool     `gorm:"type:boolean;not null;default:true;comment:Enabled"`
-	Sort      int       `gorm:"uniqueIndex;not null;default:0;comment:Sort"`
-	CreatedAt time.Time `gorm:"<-:create;comment:Creation Time"`
-	UpdatedAt time.Time `gorm:"comment:Update Time"`
+	Id             int64     `gorm:"primary_key"`
+	Name           string    `gorm:"type:varchar(100);not null;default:'';comment:Node Name"`
+	Tags           string    `gorm:"type:varchar(255);not null;default:'';comment:Tags"`
+	Port           uint16    `gorm:"not null;default:0;comment:Connect Port"`
+	Address        string    `gorm:"type:varchar(255);not null;default:'';comment:Connect Address"`
+	ServerId       int64     `gorm:"not null;default:0;comment:Server ID"`
+	Server         *Server   `gorm:"foreignKey:ServerId;references:Id"`
+	Protocol       string    `gorm:"type:varchar(100);not null;default:'';comment:Protocol Type"`
+	ProtocolConfig string    `gorm:"type:text;default:null;comment:Protocol Configuration JSON"`
+	Enabled        *bool     `gorm:"type:boolean;not null;default:true;comment:Enabled"`
+	Sort           int       `gorm:"uniqueIndex;not null;default:0;comment:Sort"`
+	CreatedAt      time.Time `gorm:"<-:create;comment:Creation Time"`
+	UpdatedAt      time.Time `gorm:"comment:Update Time"`
+}
+
+// MarshalProtocolConfig Marshal protocol config to json
+func (n *Node) MarshalProtocolConfig(protocol Protocol) error {
+	data, err := json.Marshal(protocol)
+	if err != nil {
+		return err
+	}
+	n.ProtocolConfig = string(data)
+	n.Protocol = protocol.Type
+	return nil
+}
+
+// UnmarshalProtocolConfig Unmarshal protocol config from json
+func (n *Node) UnmarshalProtocolConfig() (Protocol, error) {
+	var protocol Protocol
+	if n.ProtocolConfig == "" {
+		return protocol, nil
+	}
+	err := json.Unmarshal([]byte(n.ProtocolConfig), &protocol)
+	if err != nil {
+		return protocol, errors.Wrap(err, "unmarshal protocol config error")
+	}
+	return protocol, nil
 }
 
 func (n *Node) TableName() string {

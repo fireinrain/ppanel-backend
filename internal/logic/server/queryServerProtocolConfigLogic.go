@@ -5,6 +5,7 @@ import (
 
 	"github.com/perfect-panel/server/internal/logic/nodeconfig"
 	"github.com/perfect-panel/server/internal/model/dto"
+	"github.com/perfect-panel/server/internal/model/entity/node"
 	"github.com/perfect-panel/server/internal/svc"
 	"github.com/perfect-panel/server/pkg/logger"
 	"github.com/perfect-panel/server/pkg/tool"
@@ -26,32 +27,32 @@ func NewQueryServerProtocolConfigLogic(ctx context.Context, svcCtx *svc.ServiceC
 }
 
 func (l *QueryServerProtocolConfigLogic) QueryServerProtocolConfig(req *dto.QueryServerConfigRequest) (resp *dto.QueryServerConfigResponse, err error) {
-	// find server
-	data, err := l.svcCtx.Store.Node().FindOneServer(l.ctx, req.ServerID)
+	_, nodes, err := l.svcCtx.Store.Node().FilterNodeList(l.ctx, &node.FilterNodeParams{
+		Page:     1,
+		Size:     1000,
+		ServerId: []int64{req.ServerID},
+		Search:   "",
+	})
 	if err != nil {
-		l.Errorf("[GetServerProtocols] FindOneServer Error: %s", err.Error())
+		l.Errorf("[QueryServerProtocolConfig] FilterNodeList Error: %s", err.Error())
 		return nil, err
 	}
 
-	// handler protocols
 	var protocols []dto.Protocol
-	dst, err := data.UnmarshalProtocols()
-	if err != nil {
-		l.Errorf("[FilterServerList] UnmarshalProtocols Error: %s", err.Error())
-		return nil, err
-	}
-	tool.DeepCopy(&protocols, dst)
-
-	// only return enabled protocols for node distribution
-	var enabledProtocols []dto.Protocol
-	for _, p := range protocols {
-		if p.Enable {
-			enabledProtocols = append(enabledProtocols, p)
+	for _, nodeItem := range nodes {
+		if *(nodeItem.Enabled) {
+			protocolConfig, err := nodeItem.UnmarshalProtocolConfig()
+			if err != nil {
+				l.Errorf("[QueryServerProtocolConfig] UnmarshalProtocolConfig Error: %s", err.Error())
+				continue
+			}
+			if protocolConfig.Type != "" {
+				var dtoProtocol dto.Protocol
+				tool.DeepCopy(&dtoProtocol, protocolConfig)
+				protocols = append(protocols, dtoProtocol)
+			}
 		}
 	}
-	protocols = enabledProtocols
-
-	// filter by req.Protocols
 
 	if len(req.Protocols) > 0 {
 		var filtered []dto.Protocol
@@ -70,12 +71,12 @@ func (l *QueryServerProtocolConfigLogic) QueryServerProtocolConfig(req *dto.Quer
 	nodeValues := nodeconfig.GlobalValues(l.svcCtx.Config.Node)
 	override, err := l.svcCtx.Store.Node().FindServerConfigOverride(l.ctx, req.ServerID)
 	if err != nil {
-		l.Errorf("[GetServerProtocols] FindServerConfigOverride Error: %s", err.Error())
+		l.Errorf("[QueryServerProtocolConfig] FindServerConfigOverride Error: %s", err.Error())
 		return nil, err
 	}
 	if override != nil {
 		if err = nodeconfig.ApplyOverride(&nodeValues, override); err != nil {
-			l.Errorf("[GetServerProtocols] ApplyOverride Error: %s", err.Error())
+			l.Errorf("[QueryServerProtocolConfig] ApplyOverride Error: %s", err.Error())
 			return nil, err
 		}
 	}
